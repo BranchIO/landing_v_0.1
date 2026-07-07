@@ -1,0 +1,307 @@
+:root {
+  /* Brand */
+  --green: #6b8e23;
+  --green-600: #5f7e1f;
+  --green-700: #506c1a;
+  --green-deep: #435b16;
+  --earth: #8b5e34; /* earthy brown underline */
+  --earth-soft: #a97a4a;
+  --cream: #f7f3e9;
+  --cream-dim: #ece5d3;
+  --ink: #17170f;
+
+  --nav-radius: 999px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* shared left inset so the logo lines up with the headline */
+  --pad-x: clamp(28px, 10vw, 200px);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+/* ---------- Hero shell ---------- */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  background: var(--green);
+}
+
+/* ---------- Navbar ---------- */
+.nav-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  /* stretch the pill so its left edge lines up with the headline text */
+  padding: 18px calc(var(--pad-x) - 22px);
+  transition: padding 0.4s var(--ease-out);
+}
+
+.nav-wrap.scrolled {
+  padding: 12px calc(var(--pad-x) - 22px);
+}
+
+.nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  /* skinny horizontal bar */
+  padding: 9px 16px 9px 22px;
+  border-radius: var(--nav-radius);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 0.45s var(--ease-out), border-color 0.45s var(--ease-out);
+}
+
+/* blends into the page until scrolled, then becomes a solid pill */
+.nav-wrap.scrolled .nav {
+  background: #ffffff;
+  border-color: rgba(17, 17, 17, 0.08);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.nav-link {
+  position: relative;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.88);
+  transition: color 0.35s var(--ease-out), background 0.25s var(--ease-out);
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.nav-wrap.scrolled .nav-link {
+  color: var(--green-700);
+}
+.nav-wrap.scrolled .nav-link:hover {
+  background: rgba(107, 142, 35, 0.1);
+  color: var(--green-deep);
+}
+
+.nav-cta {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: none;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 999px;
+  /* greyed-out button until scrolled */
+  color: #8f8f89;
+  background: #eeeeea;
+  transition: background 0.35s var(--ease-out), color 0.35s var(--ease-out);
+}
+.nav-cta:hover {
+  background: #e6e6e1;
+}
+/* once scrolled, it becomes the green pill */
+.nav-wrap.scrolled .nav-cta {
+  color: #fff;
+  background: var(--green);
+}
+.nav-wrap.scrolled .nav-cta:hover {
+  color: #fff;
+  background: var(--green-600);
+}
+
+/* ---------- Logo ---------- */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  user-select: none;
+}
+.logo-mark {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: none;
+}
+.logo-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.45s var(--ease-out);
+}
+/* left panel is white in both states, so the mark stays black */
+.logo-img--white {
+  opacity: 0;
+}
+.logo-img--black {
+  opacity: 1;
+}
+.logo-word {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+
+/* ---------- Hero split ---------- */
+.hero-split {
+  width: 100%;
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.hero-left {
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 150px 5vw 90px var(--pad-x);
+}
+.hero-left-inner {
+  max-width: 640px;
+}
+
+.hero-right {
+  background: #ffffff;
+}
+
+.headline {
+  font-family: "Fraunces", Georgia, serif;
+  color: #111111;
+  font-weight: 600;
+  font-size: clamp(2.6rem, 5.2vw, 5rem);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  animation: rise 0.8s 0.05s var(--ease-out) both;
+}
+
+.subtitle {
+  margin-top: 38px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+  line-height: 1.5;
+  font-weight: 400;
+  color: #6b6b64;
+  max-width: 40ch;
+  animation: rise 0.8s 0.12s var(--ease-out) both;
+}
+
+.cta-row {
+  margin-top: 44px;
+  display: flex;
+  animation: rise 0.8s 0.2s var(--ease-out) both;
+}
+
+.availability {
+  margin-top: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #a7a7a2;
+  animation: rise 0.8s 0.28s var(--ease-out) both;
+}
+.check-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.cta-primary {
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: var(--green);
+  padding: 18px 34px;
+  border-radius: 999px;
+  transition: background 0.25s var(--ease-out);
+}
+.cta-primary:hover {
+  background: var(--green-600);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyebrow,
+  .headline,
+  .subtitle,
+  .cta-row {
+    animation: none;
+  }
+  .mark path {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .nav-links {
+    display: none;
+  }
+  .hero-inner {
+    padding-top: 120px;
+  }
+}
