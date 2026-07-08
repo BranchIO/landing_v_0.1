@@ -40,15 +40,142 @@ body {
   background: #ffffff;
 }
 
-/* ---------- Hero shell ---------- */
-.hero {
+/* light grey film-grain overlay across the whole page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+/* ---------- Hero shell (scroll story) ---------- */
+/* page 1 (hero copy) scrolls away normally while the phone rides a sticky
+   stage down into the centre of page 2 as the photos collapse into it */
+.hero-scroll {
+  --p: 0; /* phase 1 progress 0 -> 1 (phone travels to centre), set from JS */
+  --p2: 0; /* phase 2 progress 0 -> 1 (page-2 reveal), set from JS */
   position: relative;
-  min-height: 100svh;
+  height: 340vh; /* pinned room to hold page 2 while the belt plays */
+  background: #ffffff;
+}
+/* the headline column — lives in the first screen and scrolls up + away */
+.hero-copy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100svh;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  padding: 0 5vw 0 var(--pad-x);
+}
+/* sticky stage keeps the phone in view; at p=0 it sits on the right (hero),
+   at p=1 it is centred in the screen below (page 2) */
+.hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+}
+.page-after {
+  height: 100vh;
+  background: #ffffff;
+}
+
+/* ---------- Green divider (scroll reveal) ----------
+   The phrase rises from behind the green (peeking over an invisible "fold")
+   and settles on top of it. See Divider.tsx for the same-colour green sandwich
+   that lets the text read as both behind and on-top without a z-index flip.
+   --dp: 0 -> 1 reveal progress, set from JS (scroll-scrubbed, then held). */
+.divider-scroll {
+  --dp: 0;
+  position: relative;
+  height: 200vh; /* 100vh of pin room to play + hold the reveal */
+  /* keep edges green so a rubber-band overscroll never flashes white */
   background: var(--green);
+}
+.divider-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--green); /* the green surface the phrase settles on (z 0) */
+}
+.divider-phrase {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 1; /* above the backdrop, below the fold mask */
+  /* em-based cap scales with the font, so the phrase stays ~3 lines at every
+     size (desktop ~660px, mobile ~350px) instead of going 2 lines on wide screens */
+  width: min(90vw, 11em);
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--cream);
+  /* rises from behind the fold (start centre) up to its settle centre.
+     mixing vh (viewport line) with -50% (half the phrase's own height) centres
+     the phrase on that line. */
+  --start: 63vh; /* mostly tucked behind the fold, tops peeking */
+  --end: 42vh; /* settled, fully clear of the fold, resting on the green */
+  transform: translateX(-50%)
+    translateY(
+      calc((var(--start) * (1 - var(--dp)) + var(--end) * var(--dp)) - 50%)
+    );
+  will-change: transform;
+}
+.divider-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 58vh; /* the fold: the phrase peeks out from behind this edge */
+  z-index: 2; /* in front of the phrase */
+  background: var(--green);
+}
+
+/* shorter viewports: the rem-based type is a bigger slice of the screen, so
+   drop the settle a touch and lower the fold to keep the phrase fully clear */
+@media (max-height: 720px) {
+  .divider-phrase {
+    --start: 66vh;
+    --end: 40vh;
+  }
+  .divider-mask {
+    top: 60vh;
+  }
+}
+
+/* mobile: the 3-line phrase is a shorter block than on desktop, so at --start
+   only a sliver would peek. Raise the start (sit the block higher) so a full
+   first line still peeks over the fold before it rises. */
+@media (max-width: 640px) {
+  .divider-phrase {
+    --start: 60vh;
+    --end: 50vh; /* settle vertically centred (block clears the 58vh fold) */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* JS pins --dp at 1; make sure nothing here reintroduces motion */
+  .divider-phrase {
+    will-change: auto;
+  }
 }
 
 /* ---------- Navbar ---------- */
@@ -62,11 +189,20 @@ body {
   justify-content: center;
   /* stretch the pill so its left edge lines up with the headline text */
   padding: 18px calc(var(--pad-x) - 22px);
-  transition: padding 0.4s var(--ease-out);
+  transition: padding 0.4s var(--ease-out), opacity 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out);
 }
 
 .nav-wrap.scrolled {
   padding: 12px calc(var(--pad-x) - 22px);
+}
+
+/* fade the navbar away while the green divider fills the screen, so the phrase
+   is the only thing on screen — it lifts up slightly as it goes (exit -> ease-out) */
+.nav-wrap.nav-hidden {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
 }
 
 .nav {
@@ -79,13 +215,16 @@ body {
   border-radius: var(--nav-radius);
   border: 1px solid transparent;
   background: transparent;
-  transition: background 0.45s var(--ease-out), border-color 0.45s var(--ease-out);
+  box-shadow: 0 0 0 rgba(17, 17, 17, 0);
+  transition: background 0.45s var(--ease-out), border-color 0.45s var(--ease-out),
+    box-shadow 0.45s var(--ease-out);
 }
 
 /* blends into the page until scrolled, then becomes a solid pill */
 .nav-wrap.scrolled .nav {
   background: #ffffff;
   border-color: rgba(17, 17, 17, 0.08);
+  box-shadow: 0 6px 24px rgba(17, 17, 17, 0.04);
 }
 
 .nav-links {
@@ -121,7 +260,7 @@ body {
 
 .nav-cta {
   margin-left: auto;
-  font-family: inherit;
+  font-family: "Inter", system-ui, sans-serif;
   font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -137,12 +276,12 @@ body {
 .nav-cta:hover {
   background: #e6e6e1;
 }
-/* once scrolled, it becomes the green pill */
-.nav-wrap.scrolled .nav-cta {
+/* becomes the green pill once the hero coffee button is scrolled past */
+.nav-wrap.cta-active .nav-cta {
   color: #fff;
   background: var(--green);
 }
-.nav-wrap.scrolled .nav-cta:hover {
+.nav-wrap.cta-active .nav-cta:hover {
   color: #fff;
   background: var(--green-600);
 }
@@ -151,7 +290,7 @@ body {
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 1px;
   text-decoration: none;
   user-select: none;
 }
@@ -177,40 +316,582 @@ body {
   opacity: 1;
 }
 .logo-word {
-  font-family: "Montserrat", system-ui, sans-serif;
-  font-weight: 700;
-  font-size: 1.3rem;
-  letter-spacing: -0.01em;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 
-/* ---------- Hero split ---------- */
-.hero-split {
-  width: 100%;
-  min-height: 100svh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-.hero-left {
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  padding: 150px 5vw 90px var(--pad-x);
-}
+/* ---------- Hero copy ---------- */
 .hero-left-inner {
   max-width: 640px;
 }
 
-.hero-right {
-  background: #ffffff;
+/* ---------- Hero collage (photos + phone) ---------- */
+.collage {
+  position: relative;
+  width: 720px;
+  height: 640px;
+  z-index: 4; /* above the flow layer so the phone occludes the in/out belt */
+  --cs: 1.12;
+  /* the phone travels from its resting spot (upper-right) diagonally
+     down + in to the viewport centre as --p goes 0 -> 1.
+     x/y are interpolated between a rest offset (p=0) and end offset (p=1) */
+  --x-rest: 24vw; /* rests on the right, inside the hero */
+  --x-end: 0px; /* slides to the horizontal centre of page 2 */
+  --y-rest: 0px;
+  --y-end: 8px; /* settles near centre, lifted off the divider below to leave a gap */
+  transform: translate(
+      calc(var(--x-rest) * (1 - var(--p)) + var(--x-end) * var(--p)),
+      calc(var(--y-rest) * (1 - var(--p)) + var(--y-end) * var(--p))
+    )
+    scale(calc(var(--cs) * (1 + 0.05 * var(--p))));
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* photos fanned out behind the phone.
+   Scroll (var(--p)) slides each one to centre + shrinks slightly so it
+   tucks fully behind the phone (no fade — they stay visible, just stashed
+   behind the screen, which sits above them at z-index 5). */
+.photo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--pw, 220px);
+  /* rest position (--x/--y) -> phone centre (-50%/-50%) so each photo ends
+     up centred behind the screen and fully hidden by it */
+  transform: translate(
+      calc(var(--x) * (1 - var(--p)) + -50% * var(--p)),
+      calc(var(--y) * (1 - var(--p)) + -50% * var(--p))
+    )
+    rotate(calc(var(--r) * (1 - var(--p))))
+    scale(calc(1 - 0.4 * var(--p)));
+  transform-origin: center;
+  will-change: transform;
+}
+/* inner element carries the polaroid frame + one-time entrance animation,
+   so it never fights the scroll-driven transform on .photo */
+.photo-inner {
+  padding: 8px 8px 10px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 12px 30px -12px rgba(17, 17, 15, 0.28),
+    0 2px 6px rgba(17, 17, 15, 0.06);
+  animation: photo-in 0.7s var(--delay, 0s) var(--ease-out) backwards;
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+}
+
+/* each card gets its own resting position + tilt (organic fan) */
+/* photos scattered around the phone; inner edges tuck behind it (phone is z-index 5) */
+.photo--1 {
+  --x: -140%;
+  --y: -54%;
+  --r: -8deg;
+  --pw: 236px;
+  --delay: 0.1s;
+  z-index: 3;
+}
+.photo--2 {
+  --x: 24%;
+  --y: -132%;
+  --r: 8deg;
+  --pw: 178px;
+  --delay: 0.16s;
+  z-index: 2;
+}
+.photo--2 img {
+  aspect-ratio: 3 / 4;
+}
+.photo--3 {
+  --x: 50%;
+  --y: -12%;
+  --r: 9deg;
+  --pw: 242px;
+  --delay: 0.22s;
+  z-index: 3;
+}
+.photo--4 {
+  --x: -138%;
+  --y: 32%;
+  --r: 6deg;
+  --pw: 230px;
+  --delay: 0.28s;
+  z-index: 2;
+}
+.photo--5 {
+  --x: -6%;
+  --y: 66%;
+  --r: -7deg;
+  --pw: 244px;
+  --delay: 0.34s;
+  z-index: 4;
+}
+.photo--6 {
+  --x: -108%;
+  --y: -120%;
+  --r: -6deg;
+  --pw: 226px;
+  --delay: 0.4s;
+  z-index: 3;
+}
+.photo--7 {
+  --x: -104%;
+  --y: 60%;
+  --r: 6deg;
+  --pw: 234px;
+  --delay: 0.46s;
+  z-index: 4;
+}
+
+/* screen — the focal point, sits in front and centered (no phone frame) */
+.phone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 568px;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  border-radius: 34px;
+  overflow: hidden;
+  background: #f6f5f1;
+  /* hairline edge + the same soft shadow as the navbar */
+  box-shadow: 0 0 0 1px rgba(17, 17, 15, 0.06),
+    0 6px 24px rgba(17, 17, 17, 0.04);
+  animation: phone-in 0.85s 0.12s var(--ease-out) both;
+}
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f6f5f1;
+}
+.app-demo-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* mock app UI (placeholder until the demo video is dropped in) */
+.app-demo {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.app-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 22px 20px 14px;
+  border-bottom: 1px solid rgba(17, 17, 15, 0.06);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+}
+.app-back {
+  color: var(--green);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.app-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 1.18rem;
+  color: var(--ink);
+}
+.app-live {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(107, 142, 35, 0.5);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.app-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 20px 18px;
+}
+.bubble {
+  max-width: 82%;
+  padding: 11px 15px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  border-radius: 18px;
+  animation: bubble-in 0.5s var(--ease-out) both;
+}
+.bubble b {
+  font-weight: 600;
+}
+.bubble--in {
+  align-self: flex-start;
+  background: #e9e8e2;
+  color: #26261f;
+  border-bottom-left-radius: 5px;
+}
+.bubble--in:nth-of-type(2) {
+  animation-delay: 0.55s;
+}
+.bubble--out {
+  align-self: flex-end;
+  background: var(--green);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+  animation-delay: 1s;
+}
+.app-card {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 15, 0.07);
+  border-radius: 14px;
+  box-shadow: 0 6px 16px -8px rgba(17, 17, 15, 0.2);
+  animation: bubble-in 0.5s 1.5s var(--ease-out) both;
+}
+.app-card-check {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.86rem;
+}
+.app-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.app-card-sub {
+  font-size: 0.8rem;
+  color: #8a8a82;
+}
+.bubble--typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 13px 14px;
+  background: #e9e8e2;
+  border-bottom-left-radius: 5px;
+  animation-delay: 2s;
+}
+.app-compose {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(17, 17, 15, 0.06);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+}
+.app-compose-field {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #a3a39a;
+  background: #eceae4;
+  border-radius: 999px;
+}
+.app-compose-send {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.bubble--typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #a3a39a;
+  animation: typing 1.2s ease-in-out infinite;
+}
+.bubble--typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.bubble--typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* ---------- Page 2: outcomes flow (icons in -> phone -> outcomes out) ----------
+   Lives inside the sticky stage, so it stays pinned with the phone once the
+   hero copy has scrolled away. Everything fades in with --p2.
+   Two motion paths that share a tangent at the phone centre, so the icons
+   riding in and the outcomes riding out read as one continuous, bending line
+   (poke.com's icon belt, routed straight through the phone). */
+.outcomes-heading {
+  position: absolute;
+  top: 50%;
+  left: var(--pad-x);
+  z-index: 6;
+  /* sized to always stop short of the centred phone's left edge (~50vw - 150px)
+     with a comfortable gap, so the left header never collides with the phone */
+  width: clamp(220px, calc(50vw - var(--pad-x) - 200px), 400px);
+  margin: 0;
+  text-align: left;
+  text-wrap: balance;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.5vw, 2.8rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: #111111;
+  /* it doesn't peek from behind anything — it just comes out (fade + slight
+     rise) as page 2 arrives. Only the green divider peeks from behind a fold. */
+  transform: translateY(calc(-50% + 22px * (1 - var(--p2))));
+  opacity: var(--p2);
+  pointer-events: none;
+}
+
+.flow {
+  --flow-s: 1;
+  --flow-dur: 6s; /* smooth conveyor — keep in sync with BELT_DUR */
+  position: absolute;
+  top: calc(50% + 44px); /* follows the phone down so the belt threads through it */
+  left: 50%;
+  width: 1200px;
+  height: 640px;
+  /* behind the whole collage (z-index 4) so items tuck in / out behind the
+     phone — the phone's own z-index is trapped in the collage stacking
+     context, so ordering has to happen at the stage level here */
+  z-index: 3;
+  transform: translate(-50%, -50%) scale(var(--flow-s));
+  /* the whole belt fades in with the phase-2 scroll progress once the phone pins,
+     and fades back out as you scroll up. The belt itself just runs forward. */
+  opacity: var(--p2);
+  pointer-events: none;
+}
+
+.flow-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  offset-rotate: 0deg;
+  offset-anchor: center;
+  will-change: offset-distance;
+}
+
+/* incoming app icons — stream in single-file from off the bottom-left, sweep
+   along the bottom and up into the phone at (600,320).
+   The belt runs continuously from load and is PRE-FILLED (negative --d delays)
+   so it's always fully populated — the whole belt just fades in/out with --p2
+   rather than streaming in empty from the left. */
+.flow-in {
+  offset-path: path("M -170 560 C 200 610, 470 480, 600 360");
+  /* constant-speed belt -> linear (Emil: linear for continuous motion) */
+  animation: flow-move var(--flow-dur, 6s) var(--d, 0s) linear infinite;
+}
+/* outgoing outcomes — emerge from behind the phone and stream single-file up and
+   to the right. A gentler, more horizontal arc keeps each pill in the readable
+   zone longer so several outcomes are visible flowing out at once (rather than
+   shooting off the top). Start tangent matches the incoming path's end tangent,
+   so the two read as one continuous line through the phone. */
+.flow-out {
+  offset-path: path("M 600 360 C 830 255, 1070 185, 1400 90");
+  animation: flow-move var(--flow-dur, 6s) var(--d, 0s) linear infinite;
+}
+
+.flow-tile {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 18px -10px rgba(17, 17, 15, 0.22),
+    0 1px 3px rgba(17, 17, 15, 0.06);
+}
+.flow-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 15, 0.06);
+  /* way lighter shadow */
+  box-shadow: 0 2px 8px -4px rgba(17, 17, 15, 0.12);
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+/* brand-green check badge that rides out with the outcome */
+.flow-pill::before {
+  content: "";
+  width: 17px;
+  height: 17px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--green)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E")
+    center / 11px 11px no-repeat;
+}
+
+/* pure conveyor: constant-speed travel, no per-item fade (the phone occludes the
+   centre and the path ends sit off-screen, so appearing/disappearing is clean) */
+@keyframes flow-move {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@media (max-width: 1360px) {
+  .flow {
+    --flow-s: 0.94;
+  }
+}
+@media (max-width: 1160px) {
+  .flow {
+    --flow-s: 0.84;
+  }
+}
+/* narrower screens: drop the (already-centred) heading a bit lower so it clears
+   the navbar and the taller mobile phone */
+@media (max-width: 1024px) {
+  .outcomes-heading {
+    top: clamp(128px, 18vh, 180px);
+    width: min(86vw, 460px);
+  }
+}
+@media (max-width: 900px) {
+  .flow {
+    --flow-s: 0.62;
+  }
+  /* narrow viewport: swap the wide, near-horizontal belt for a steeper
+     bottom-left -> top-right diagonal so more of it stays on-screen — but keep
+     the endpoints well off-screen so icons slide in from the edge instead of
+     popping in mid-screen. The two paths still share a tangent at (600,360). */
+  .flow-in {
+    offset-path: path("M -120 700 C 200 560, 460 470, 600 360");
+  }
+  .flow-out {
+    offset-path: path("M 600 360 C 740 250, 1080 130, 1460 -40");
+  }
+  .flow-tile {
+    width: 46px;
+    height: 46px;
+  }
+}
+@media (max-width: 560px) {
+  .flow {
+    --flow-s: 0.5;
+  }
+}
+
+@keyframes photo-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes phone-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -42%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    transform: translate(-50%, calc(-50% - 10px));
+  }
+}
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(107, 142, 35, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(107, 142, 35, 0);
+  }
+}
+
+/* collage scales down as the column narrows */
+@media (max-width: 1360px) {
+  .collage {
+    --cs: 1.0;
+  }
+}
+@media (max-width: 1160px) {
+  .collage {
+    --cs: 0.86;
+  }
 }
 
 .headline {
   font-family: "Fraunces", Georgia, serif;
   color: #111111;
-  font-weight: 600;
+  font-weight: 400;
   font-size: clamp(2.6rem, 5.2vw, 5rem);
   line-height: 1.0;
   letter-spacing: -0.03em;
@@ -220,8 +901,8 @@ body {
 .subtitle {
   margin-top: 38px;
   font-family: "Inter", system-ui, sans-serif;
-  font-size: clamp(1.15rem, 1.5vw, 1.45rem);
-  line-height: 1.5;
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  line-height: 1.55;
   font-weight: 400;
   color: #6b6b64;
   max-width: 40ch;
@@ -252,7 +933,7 @@ body {
 }
 
 .cta-primary {
-  font-family: inherit;
+  font-family: "Inter", system-ui, sans-serif;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -297,11 +978,591 @@ body {
   }
 }
 
+/* smaller screens — copy sits at the top, phone rests below it then rises
+   into the centre of page 2 as the copy scrolls away */
+@media (max-width: 900px) {
+  .hero-copy {
+    width: 100%;
+    height: auto;
+    padding: 128px 8vw 0; /* drop the headline down, clear of the navbar */
+    justify-content: center;
+    text-align: center;
+  }
+  .hero-left-inner {
+    margin: 0 auto;
+  }
+  .subtitle {
+    margin: 20px auto 0;
+  }
+  .cta-row {
+    justify-content: center;
+    margin-top: 26px;
+  }
+  .collage {
+    --x-rest: 0px;
+    --x-end: 0px;
+    /* rests low so the phone peeks out below the button. The copy above is
+       top-anchored in fixed px, so a plain 42vh rest lets the phone ride UP into
+       the button whenever something shortens the viewport (browser bar, banner).
+       Floor the phone's centre at 720px from the top so it holds a consistent
+       gap below the button on short viewports, while tall screens keep the 42vh
+       feel (max(92svh,720px) - 50svh == 42svh once 92svh >= 720px). */
+    --y-rest: calc(max(92svh, 720px) - 50svh);
+    --y-end: -8px; /* lifted up off the divider below to leave a comfortable gap */
+    --cs: 0.92; /* bigger phone on mobile */
+  }
+}
+
+@media (max-width: 560px) {
+  .collage {
+    --cs: 0.78; /* bigger phone on small phones too */
+  }
+  .headline {
+    font-size: clamp(2rem, 8vw, 2.6rem);
+  }
+}
+
 @media (max-width: 720px) {
   .nav-links {
     display: none;
   }
-  .hero-inner {
-    padding-top: 120px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-inner,
+  .phone,
+  .bubble,
+  .app-card,
+  .app-live,
+  .bubble--typing span,
+  .flow-in,
+  .flow-out {
+    animation: none;
+  }
+  /* no scroll story: collapse to a single, normal-height screen */
+  .hero-scroll {
+    height: 100svh;
+  }
+  .hero-stage {
+    position: static;
+    height: 100svh;
+  }
+}
+
+/* ==========================================================================
+   "When do you use it" — sticky left, scrolling right
+   One section: the left column (heading + rail) stays steady while the right
+   column of steps scrolls past. Each rail bar fills (black) as its step travels
+   through the focus line; the label goes black while its step is in view.
+   See WhenToUse.tsx — a per-step fill --f is written each frame, the active
+   index is React state. ==========================================================================
+*/
+.wtu {
+  position: relative;
+  background: #ffffff;
+  padding: 22vh 0 14vh; /* clear the fixed navbar so the heading isn't jammed up top */
+}
+.wtu-inner {
+  display: grid;
+  /* two even halves: rail sits at the left edge, content starts at 50% — like
+     the reference (heading + content aligned to the centre line) */
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0 var(--pad-x);
+}
+
+/* heading row — same columns as the walk, so the heading lands over the right
+   (content) column and reads as top-right, like the reference */
+.wtu-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0 var(--pad-x);
+  margin-bottom: 6vh;
+}
+.wtu-lead {
+  grid-column: 2;
+  margin: 0;
+  max-width: 15em;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.5vw, 2.8rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: #111111;
+  text-wrap: balance;
+}
+
+/* ---- left: the rail, sticky and vertically centred so it sits level with the
+   (centred) step content on the right, like the reference ---- */
+.wtu-side {
+  position: sticky;
+  top: 50vh;
+  transform: translateY(-50%);
+  align-self: start;
+}
+.wtu-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.wtu-railitem {
+  appearance: none;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  color: #b4b3ab;
+  transition: color 0.4s var(--ease-out), transform 0.15s var(--ease-out);
+}
+.wtu-railitem:active {
+  transform: scale(0.99);
+}
+.wtu-railitem[data-active="true"] {
+  color: var(--ink);
+}
+.wtu-railtext {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem; /* matches the navbar link size, like the reference */
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.wtu-track {
+  position: relative;
+  width: 104px; /* longer bar — width is fixed so the fill timing (scroll-driven) is unchanged */
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(23, 23, 15, 0.12);
+  overflow: hidden;
+}
+.wtu-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--ink); /* bars fill black */
+  transform-origin: left center;
+  transform: scaleX(var(--f, 0));
+  /* ease each scroll-driven update so the fill glides instead of tracking 1:1 —
+     short enough to stay tight to the scrollbar, long enough to feel buttery */
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* ---- right: the steps you scroll through ---- */
+.wtu-flow {
+  min-width: 0;
+}
+.wtu-step {
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 560px;
+}
+.wtu-step-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.wtu-step-blurb {
+  margin-top: 16px;
+  max-width: 42ch;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: #5c5b52;
+}
+.wtu-media {
+  margin-top: 34px;
+}
+
+/* ---- shared mock card language (cream/green, like the phone) ---- */
+.wtu-card {
+  width: min(100%, 420px);
+  padding: 20px;
+  background: #fbfaf5;
+  border: 1px solid rgba(23, 23, 15, 0.08);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px -34px rgba(23, 23, 15, 0.4),
+    0 2px 6px -3px rgba(23, 23, 15, 0.08);
+  font-family: "Inter", system-ui, sans-serif;
+}
+.wtu-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wtu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  background: #fff;
+  border: 1px solid rgba(23, 23, 15, 0.06);
+  border-radius: 14px;
+}
+.wtu-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wtu-row-name {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.wtu-row-sub {
+  font-size: 0.8rem;
+  color: #8a8980;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wtu-av {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  background: #e9e8e2;
+}
+.wtu-av--ph {
+  display: grid;
+  place-items: center;
+  color: #a3a39a;
+  font-size: 0.8rem;
+}
+.wtu-tag {
+  flex: none;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  background: rgba(107, 142, 35, 0.13);
+  border-radius: 999px;
+}
+.wtu-tag--soft {
+  color: #8a5e2f;
+  background: rgba(139, 94, 52, 0.13);
+}
+.wtu-score {
+  flex: none;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--green-700);
+  font-variant-numeric: tabular-nums;
+}
+.wtu-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.72rem;
+}
+.wtu-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(107, 142, 35, 0.5);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+/* search mock */
+.wtu-goal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.wtu-goal-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #a3a39a;
+}
+.wtu-goal-chip {
+  padding: 6px 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  background: rgba(107, 142, 35, 0.13);
+  border-radius: 999px;
+}
+.wtu-scanline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  color: #8a8980;
+}
+
+/* who mock */
+.wtu-ask {
+  padding: 12px 15px;
+  margin-bottom: 14px;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.35;
+  border-radius: 16px;
+  border-bottom-right-radius: 5px;
+  width: fit-content;
+  margin-left: auto;
+  max-width: 88%;
+}
+.wtu-answer-label {
+  margin-bottom: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #a3a39a;
+}
+
+/* why mock */
+.wtu-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(23, 23, 15, 0.07);
+}
+.wtu-live {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--green-700);
+}
+.wtu-facts {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wtu-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: #3a3a32;
+}
+.wtu-facts-k {
+  flex: none;
+  width: 52px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--green-700);
+}
+
+/* how (A/B) mock */
+.wtu-ab {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wtu-variant {
+  position: relative;
+  padding: 13px 40px 30px 14px;
+  background: #fff;
+  border: 1px solid rgba(23, 23, 15, 0.08);
+  border-radius: 14px;
+}
+.wtu-variant p {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #3a3a32;
+}
+.wtu-variant--b {
+  border-color: rgba(107, 142, 35, 0.5);
+  box-shadow: 0 0 0 1px rgba(107, 142, 35, 0.25);
+}
+.wtu-variant-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #eceae4;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #8a8980;
+}
+.wtu-variant--b .wtu-variant-tag {
+  background: var(--green);
+  color: #fff;
+}
+.wtu-variant-rate {
+  position: absolute;
+  left: 14px;
+  bottom: 9px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #a3a39a;
+}
+.wtu-variant-rate--win {
+  color: var(--green-700);
+}
+.wtu-send {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #8a8980;
+}
+.wtu-send-btn {
+  padding: 8px 14px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--green);
+  border-radius: 999px;
+}
+
+/* warm mock */
+.wtu-warm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.wtu-warm-count {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--green-700);
+  padding: 3px 9px;
+  background: rgba(107, 142, 35, 0.13);
+  border-radius: 999px;
+}
+
+/* network / intro mock */
+.wtu-intro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.wtu-intro-avs {
+  display: flex;
+}
+.wtu-intro-avs .wtu-av {
+  width: 34px;
+  height: 34px;
+  margin-left: -10px;
+  border: 2px solid #fbfaf5;
+}
+.wtu-intro-avs .wtu-av:first-child {
+  margin-left: 0;
+}
+.wtu-intro-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.wtu-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.wtu-msg {
+  max-width: 84%;
+  padding: 10px 13px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  border-radius: 15px;
+}
+.wtu-msg--branch {
+  align-self: flex-start;
+  background: #eceae4;
+  color: #26261f;
+  border-bottom-left-radius: 5px;
+}
+.wtu-msg--them {
+  align-self: flex-end;
+  background: var(--green);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.wtu-intro-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #8a8980;
+}
+
+/* ---- responsive: below 900px, single column, rail hidden ---- */
+@media (max-width: 900px) {
+  .wtu {
+    padding: 6vh 0 10vh;
+  }
+  .wtu-top {
+    display: block;
+    margin-bottom: 6vh;
+  }
+  .wtu-inner {
+    display: block;
+  }
+  .wtu-side {
+    position: static;
+  }
+  .wtu-lead {
+    grid-column: auto;
+    max-width: none;
+  }
+  .wtu-rail {
+    display: none;
+  }
+  .wtu-step {
+    min-height: 0;
+    margin-bottom: 72px;
+    max-width: 520px;
+  }
+  .wtu-step:last-child {
+    margin-bottom: 0;
+  }
+  .wtu-media {
+    margin-top: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wtu-railitem {
+    transition: color 0.2s ease;
   }
 }
