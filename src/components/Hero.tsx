@@ -81,12 +81,12 @@ export default function Hero() {
       <div className="hero-copy">
         <div className="hero-left-inner">
           <h1 className="headline">
-            The AI assistant that helps you meet more people
+            The AI assistant that helps you build trust
           </h1>
           <p className="subtitle">
-            Everything about your network.
+            Managing your network.
             <br />
-            Controlled from your messages.
+            All from your messages.
           </p>
           <div className="cta-row">
             <button className="cta-primary" type="button">
