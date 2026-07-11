@@ -1,0 +1,52 @@
+:root {
+  /* very light white background */
+  --bg: #fcfcfa;
+  --ink: #2f3a1f;
+  --brand-green: #6a8f2a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 24px);
+}
+
+.brand__logo {
+  width: clamp(64px, 12vw, 120px);
+  height: auto;
+  display: block;
+}
+
+.brand__name {
+  font-weight: 700;
+  font-size: clamp(40px, 9vw, 96px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
