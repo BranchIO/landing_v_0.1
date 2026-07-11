@@ -28,20 +28,28 @@ function renderBrand({ name, logoUrl, logoAlt }: BrandConfig): HTMLElement {
   return brand;
 }
 
-function renderFooter(name: string): HTMLElement {
-  const footer = document.createElement("footer");
-  footer.className = "footer";
+function renderTagline(): HTMLElement {
+  const tagline = document.createElement("p");
+  tagline.className = "tagline";
+  tagline.textContent = "Helping VCs deploy capital faster.";
+  return tagline;
+}
 
-  const location = document.createElement("span");
-  location.className = "footer__line";
-  location.textContent = "San Francisco, California";
+function renderContactButton(): HTMLElement {
+  const link = document.createElement("a");
+  link.className = "cta";
+  link.href = "https://cal.com/raeedzzz/branch-chat";
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "Free coffee";
+  return link;
+}
 
-  const rights = document.createElement("span");
-  rights.className = "footer__line";
-  rights.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
-
-  footer.append(location, rights);
-  return footer;
+function renderColophon(name: string): HTMLElement {
+  const colophon = document.createElement("footer");
+  colophon.className = "colophon";
+  colophon.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+  return colophon;
 }
 
 function mount(root: HTMLElement): void {
@@ -49,16 +57,17 @@ function mount(root: HTMLElement): void {
   hero.className = "hero";
   hero.append(
     renderBrand({ name: BRAND_NAME, logoUrl, logoAlt: `${BRAND_NAME} logo` }),
-    renderFooter(BRAND_NAME)
+    renderTagline(),
+    renderContactButton()
   );
-  root.append(hero);
+  root.append(hero, renderColophon(BRAND_NAME));
 }
 
 setupHead({
   title: BRAND_NAME,
   faviconUrl: logoUrl,
   fontHref:
-    "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Montserrat:wght@300;400;500;600;700;800&display=swap",
+    "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap",
 });
 injectStyles();
 

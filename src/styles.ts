@@ -46,6 +46,7 @@ body {
   display: flex;
   align-items: center;
   gap: clamp(4px, 1vw, 10px);
+  transform: translateX(-20px);
 }
 
 .brand__logo {
@@ -64,20 +65,48 @@ body {
   line-height: 1;
 }
 
-.footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  text-align: center;
+.tagline {
+  margin-top: -16px;
+  font-family: ${theme.bodyFont};
   font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.02em;
   color: rgba(47, 58, 31, 0.55);
 }
 
-.footer__line {
-  display: block;
+.cta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 22px;
+  border-radius: 999px;
+  background-color: var(--brand-green);
+  color: #fffdf2;
+  font-family: ${theme.bodyFont};
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cta:hover {
+  background-color: #5c7c1f;
+}
+
+.colophon {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: ${theme.bodyFont};
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(47, 58, 31, 0.5);
 }
 `;
 }
