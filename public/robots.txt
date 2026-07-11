@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://branch.vc/sitemap.xml
+Sitemap: https://trybranch.io/sitemap.xml
