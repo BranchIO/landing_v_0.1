@@ -1,4 +1,3 @@
-import { setupHead } from "./head";
 import { injectStyles } from "./styles";
 
 // Served from /public, referenced by absolute URL.
@@ -63,12 +62,6 @@ function mount(root: HTMLElement): void {
   root.append(hero, renderColophon(BRAND_NAME));
 }
 
-setupHead({
-  title: BRAND_NAME,
-  faviconUrl: logoUrl,
-  fontHref:
-    "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=Montserrat:wght@300;400;500;600;700;800&display=swap",
-});
 injectStyles();
 
 const app = document.querySelector<HTMLDivElement>("#app");
