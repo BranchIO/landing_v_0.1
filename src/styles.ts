@@ -27,11 +27,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+#app {
+  min-height: 100vh;
+}
+
 .hero {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  gap: 28px;
   padding: 24px;
 }
 
@@ -42,30 +49,35 @@ body {
 }
 
 .brand__logo {
-  width: clamp(36px, 6vw, 56px);
+  width: clamp(56px, 9vw, 88px);
   height: auto;
   display: block;
+  align-self: center;
 }
 
 .brand__name {
-  font-family: ${theme.fontStack};
+  font-family: ${theme.displayFont};
   color: var(--brand-green);
   font-weight: 500;
-  font-size: clamp(22px, 4vw, 40px);
+  font-size: clamp(44px, 8vw, 80px);
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
 .footer {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: rgba(47, 58, 31, 0.5);
+  color: rgba(47, 58, 31, 0.55);
+}
+
+.footer__line {
+  display: block;
 }
 `;
 }
