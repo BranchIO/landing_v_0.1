@@ -214,6 +214,52 @@ body {
   margin-top: 8px;
 }
 
+/* Text-Scour page (/sms) */
+.sms__number {
+  margin-top: 24px;
+  font-family: ${theme.displayFont};
+  font-size: clamp(28px, 4.5vw, 38px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.sms__number a {
+  color: var(--brand-green);
+  text-decoration: none;
+}
+
+.sms__steps {
+  margin: 20px 0 0 20px;
+  font-family: ${theme.bodyFont};
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(47, 58, 31, 0.85);
+}
+
+.sms__steps li + li {
+  margin-top: 8px;
+}
+
+.sms__figure {
+  margin-top: 32px;
+}
+
+.sms__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid rgba(47, 58, 31, 0.12);
+}
+
+.sms__caption {
+  margin-top: 10px;
+  font-family: ${theme.bodyFont};
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: rgba(47, 58, 31, 0.5);
+}
+
 .legal__footer {
   margin-top: 56px;
   padding-top: 24px;

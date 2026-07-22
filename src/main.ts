@@ -51,6 +51,10 @@ function renderColophon(name: string): HTMLElement {
   const copyright = document.createElement("span");
   copyright.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
 
+  const sms = document.createElement("a");
+  sms.href = "/sms/";
+  sms.textContent = "Text Scour";
+
   const terms = document.createElement("a");
   terms.href = "/terms/";
   terms.textContent = "Terms of Service";
@@ -59,7 +63,7 @@ function renderColophon(name: string): HTMLElement {
   privacy.href = "/privacy/";
   privacy.textContent = "Privacy Policy";
 
-  colophon.append(copyright, terms, privacy);
+  colophon.append(copyright, sms, terms, privacy);
   return colophon;
 }
 

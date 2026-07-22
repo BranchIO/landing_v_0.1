@@ -14,6 +14,7 @@ export default defineConfig({
         main: entry("./index.html"),
         privacy: entry("./privacy/index.html"),
         terms: entry("./terms/index.html"),
+        sms: entry("./sms/index.html"),
       },
     },
   },
