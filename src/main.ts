@@ -47,7 +47,19 @@ function renderContactButton(): HTMLElement {
 function renderColophon(name: string): HTMLElement {
   const colophon = document.createElement("footer");
   colophon.className = "colophon";
-  colophon.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+
+  const copyright = document.createElement("span");
+  copyright.textContent = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+
+  const terms = document.createElement("a");
+  terms.href = "/terms/";
+  terms.textContent = "Terms of Service";
+
+  const privacy = document.createElement("a");
+  privacy.href = "/privacy/";
+  privacy.textContent = "Privacy Policy";
+
+  colophon.append(copyright, terms, privacy);
   return colophon;
 }
 
