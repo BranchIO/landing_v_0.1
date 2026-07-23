@@ -12,6 +12,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: entry("./index.html"),
+        products: entry("./products/index.html"),
+        about: entry("./about/index.html"),
+        contact: entry("./contact/index.html"),
         privacy: entry("./privacy/index.html"),
         terms: entry("./terms/index.html"),
         sms: entry("./sms/index.html"),

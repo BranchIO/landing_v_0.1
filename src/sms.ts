@@ -1,8 +1,5 @@
-import { injectStyles } from "./styles";
-import { SMS_NUMBER, SUPPORT_EMAIL } from "./legal";
+import { SMS_HREF, SMS_NUMBER, SUPPORT_EMAIL, mountShell } from "./site";
 
-const BRAND_NAME = "Branch";
-const logoUrl = "/branch-logo.png";
 const OPT_IN_IMAGE = "/sms-opt-in.png";
 
 const STEPS = [
@@ -11,30 +8,12 @@ const STEPS = [
   "Open it, sign in, and your number is linked to your account.",
 ];
 
-function renderHomeLink(): HTMLElement {
-  const link = document.createElement("a");
-  link.className = "legal__home";
-  link.href = "/";
-
-  const logo = document.createElement("img");
-  logo.className = "legal__logo";
-  logo.src = logoUrl;
-  logo.alt = `${BRAND_NAME} logo`;
-
-  const wordmark = document.createElement("span");
-  wordmark.className = "legal__wordmark";
-  wordmark.textContent = BRAND_NAME;
-
-  link.append(logo, wordmark);
-  return link;
-}
-
 function renderNumber(): HTMLElement {
   const wrapper = document.createElement("p");
   wrapper.className = "sms__number";
 
   const link = document.createElement("a");
-  link.href = `sms:${SMS_NUMBER.replace(/[^\d+]/g, "")}`;
+  link.href = SMS_HREF;
   link.textContent = SMS_NUMBER;
 
   wrapper.append(link);
@@ -79,32 +58,8 @@ function renderParagraph(text: string, className = "legal__body"): HTMLElement {
   return paragraph;
 }
 
-function renderFooter(): HTMLElement {
-  const footer = document.createElement("footer");
-  footer.className = "legal__footer";
-
-  const copyright = document.createElement("span");
-  copyright.textContent = `© ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.`;
-
-  const privacy = document.createElement("a");
-  privacy.href = "/privacy/";
-  privacy.textContent = "Privacy Policy";
-
-  const terms = document.createElement("a");
-  terms.href = "/terms/";
-  terms.textContent = "Terms of Service";
-
-  footer.append(copyright, privacy, terms);
-  return footer;
-}
-
 function mount(): void {
-  injectStyles();
-
-  const app = document.querySelector<HTMLDivElement>("#app");
-  if (!app) {
-    throw new Error("Root element #app not found");
-  }
+  const main = mountShell({ current: "legal" });
 
   const article = document.createElement("article");
   article.className = "legal";
@@ -114,7 +69,6 @@ function mount(): void {
   title.textContent = "Text Scour";
 
   article.append(
-    renderHomeLink(),
     title,
     renderParagraph(
       "Scour is the Branch assistant. Text it from your phone and it answers with the same network, memory, and workflows you have in the app.",
@@ -146,8 +100,8 @@ function mount(): void {
     )
   );
 
-  article.append(consent, renderFooter());
-  app.append(article);
+  article.append(consent);
+  main.append(article);
 }
 
 mount();

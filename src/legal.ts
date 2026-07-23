@@ -1,15 +1,7 @@
-import { injectStyles } from "./styles";
+import { mountShell, SMS_NUMBER, SUPPORT_EMAIL } from "./site";
 
-// The number people text to reach Branch. Carriers check that the number in
-// the messaging registration matches what the site publishes, so keep this in
-// sync with TELNYX_FROM_NUMBER.
-export const SMS_NUMBER = "+1 (833) 787-0356";
-
-export const SUPPORT_EMAIL = "support@trybranch.io";
+export { SMS_NUMBER, SUPPORT_EMAIL };
 export const LAST_UPDATED = "22 July 2026";
-
-const BRAND_NAME = "Branch";
-const logoUrl = "/branch-logo.png";
 
 /** One block of a legal document: a heading and its paragraphs. */
 export interface LegalSection {
@@ -22,24 +14,6 @@ export interface LegalDoc {
   title: string;
   intro: string;
   sections: LegalSection[];
-}
-
-function renderHomeLink(): HTMLElement {
-  const link = document.createElement("a");
-  link.className = "legal__home";
-  link.href = "/";
-
-  const logo = document.createElement("img");
-  logo.className = "legal__logo";
-  logo.src = logoUrl;
-  logo.alt = `${BRAND_NAME} logo`;
-
-  const wordmark = document.createElement("span");
-  wordmark.className = "legal__wordmark";
-  wordmark.textContent = BRAND_NAME;
-
-  link.append(logo, wordmark);
-  return link;
 }
 
 function renderBlock(block: string | string[]): HTMLElement {
@@ -75,32 +49,8 @@ function renderSection(section: LegalSection): HTMLElement {
   return wrapper;
 }
 
-function renderFooter(): HTMLElement {
-  const footer = document.createElement("footer");
-  footer.className = "legal__footer";
-
-  const copyright = document.createElement("span");
-  copyright.textContent = `© ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.`;
-
-  const privacy = document.createElement("a");
-  privacy.href = "/privacy/";
-  privacy.textContent = "Privacy Policy";
-
-  const terms = document.createElement("a");
-  terms.href = "/terms/";
-  terms.textContent = "Terms of Service";
-
-  footer.append(copyright, privacy, terms);
-  return footer;
-}
-
 export function mountLegal(doc: LegalDoc): void {
-  injectStyles();
-
-  const app = document.querySelector<HTMLDivElement>("#app");
-  if (!app) {
-    throw new Error("Root element #app not found");
-  }
+  const main = mountShell({ current: "legal" });
 
   const article = document.createElement("article");
   article.className = "legal";
@@ -117,11 +67,10 @@ export function mountLegal(doc: LegalDoc): void {
   intro.className = "legal__body legal__body--lead";
   intro.textContent = doc.intro;
 
-  article.append(renderHomeLink(), title, updated, intro);
+  article.append(title, updated, intro);
   for (const section of doc.sections) {
     article.append(renderSection(section));
   }
-  article.append(renderFooter());
 
-  app.append(article);
+  main.append(article);
 }
